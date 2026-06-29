@@ -1,0 +1,30 @@
+cat > .gitignore << 'EOF'
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Entorno
+.env
+*.env
+
+# Descargas temporales
+backend/downloads/*
+!backend/downloads/.gitkeep
+
+backend/cookies.txt
+
+# Google credentials
+credentials.json
+token.json
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+EOF
