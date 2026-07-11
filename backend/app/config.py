@@ -8,7 +8,9 @@ class Settings(BaseSettings):
     google_drive_folder_id: str = ""
     google_sheet_id: str = ""
     downloads_path: str = "downloads"
-
+    openai_api_key: str = ""
+    databricks_host: str = ""
+    databricks_token: str = ""
     class Config:
         env_file = ".env"
 
