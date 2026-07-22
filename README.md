@@ -1,4 +1,4 @@
-# YouTube Automation - 
+# YouTube Automation - Contenido de Fútbol Mexicano (Selección Mexicana, Club América)
 
 Pipeline de datos end-to-end que automatiza la ingesta, transcripción, clasificación y análisis de contenido de video relacionado con el Club América y la Selección Mexicana usando arquitectura Medallion (Bronze/Silver/Gold) en Databricks.
 
