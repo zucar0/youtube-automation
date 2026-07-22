@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import download, transcription, metadata, approval
+from app.routers import download, transcription, metadata, approval, rss, control
 
 app = FastAPI(
     title=settings.app_name,
@@ -20,6 +20,8 @@ app.include_router(download.router,       prefix="/api/download",      tags=["Do
 app.include_router(transcription.router,  prefix="/api/transcription",  tags=["Transcription"])
 app.include_router(metadata.router,       prefix="/api/metadata",       tags=["Metadata"])
 app.include_router(approval.router,       prefix="/api/approval",       tags=["Approval"])
+app.include_router(rss.router, prefix="/api/rss", tags=["RSS"])
+app.include_router(control.router, prefix="/api/control", tags=["Control"])
 
 @app.get("/")
 def root():

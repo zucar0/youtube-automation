@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     databricks_host: str = ""
     databricks_token: str = ""
+    youtube_api_key: str = ""
+    telegram_bot_token: str = ""
     class Config:
         env_file = ".env"
 
