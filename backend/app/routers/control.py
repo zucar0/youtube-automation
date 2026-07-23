@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from app.services.downloader import download_video as svc_download
 from app.services.transcriber import transcribe_video
-from app.services.classifier import clasificar_tema
+from app.services.classifier import clasificar_tema, generar_propuesta_contenido
 from app.services.youtube_metadata import obtener_metadata_youtube
 from app.services.databricks_uploader import guardar_en_volume
 
@@ -16,6 +16,7 @@ class ControlRequest(BaseModel):
     url: str
     equipo: str
     texto_referencia: str
+    tipo_contenido: str = "short"
     usuario: str = "toño"
 
 def extraer_youtube_id(url: str) -> str | None:
@@ -53,12 +54,19 @@ async def registrar_url(request: ControlRequest):
         guardar_en_volume(registro, registro_id, tipo="control")
         resultado_transcripcion = transcribe_video(file_path)
         tema_data = clasificar_tema(resultado_transcripcion["text"])
+        propuesta = generar_propuesta_contenido(
+            resultado_transcripcion["text"],
+            request.equipo,
+            request.texto_referencia,
+            request.tipo_contenido
+        )
         payload_transcripcion = {
             "video_id": video_id,
             "text": resultado_transcripcion["text"],
             "segments": resultado_transcripcion["segments"],
             "language": resultado_transcripcion["language"],
             "clasificacion": tema_data,
+            "propuesta_contenido": propuesta,
         }
         guardar_en_volume(payload_transcripcion, video_id, tipo="transcripts")
 
@@ -70,6 +78,8 @@ async def registrar_url(request: ControlRequest):
 
         registro["estatus"] = "completado"
         registro["video_id"] = video_id
+        registro["propuesta_contenido"] = propuesta  
+        registro["transcripcion"] = resultado_transcripcion["text"]
         guardar_en_volume(registro, registro_id, tipo="control")
 
     except Exception as e:

@@ -1,4 +1,5 @@
 import requests
+import json
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from app.config import settings
@@ -21,20 +22,54 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
         estado["url"] = texto
         estado["paso"] = "equipo"
         await update.message.reply_text("¿Qué equipo/canal? (ej. América)")
+
     elif estado["paso"] == "equipo":
         estado["equipo"] = texto
         estado["paso"] = "contexto"
         await update.message.reply_text("Dame un texto de contexto/referencia:")
+
     elif estado["paso"] == "contexto":
         estado["texto_referencia"] = texto
+        estado["paso"] = "tipo_contenido"
+        await update.message.reply_text("¿Es para short o video largo? (responde: short / largo)")
+
+    elif estado["paso"] == "tipo_contenido":
+        tipo = texto.strip().lower()
+        estado["tipo_contenido"] = tipo if tipo in ("short", "largo") else "short"
+
         payload = {
             "url": estado["url"],
             "equipo": estado["equipo"],
             "texto_referencia": estado["texto_referencia"],
+            "tipo_contenido": estado["tipo_contenido"],
             "usuario": update.effective_user.username or "telegram_user"
         }
+
+        await update.message.reply_text("⏳ Procesando video, esto puede tardar 1-2 minutos...")
         response = requests.post(API_URL, json=payload)
-        await update.message.reply_text(f"✅ Registrado: {response.json()}")
+        resultado = response.json()
+
+        if resultado.get("estatus") == "completado" and resultado.get("propuesta_contenido"):
+            propuesta = json.loads(resultado["propuesta_contenido"])
+            frases = propuesta.get("frases_potentes", [])
+            frases_texto = "\n".join(f"• {f}" for f in frases)
+            transcripcion = resultado.get("transcripcion", "N/A")
+            transcripcion_corta = transcripcion[:500] + "..." if len(transcripcion) > 500 else transcripcion
+
+            mensaje = (
+                f"✅ *Video procesado* ({estado['tipo_contenido']})\n\n"
+                f"📌 *Título:* {propuesta.get('titulo', 'N/A')}\n\n"
+                f"📝 *Descripción:*\n{propuesta.get('descripcion', 'N/A')}\n\n"
+                f"🏷️ *Hashtags:* {' '.join('#' + h for h in propuesta.get('hashtags', []))}\n\n"
+                f"🔑 *Etiquetas:* {', '.join(propuesta.get('etiquetas', []))}\n\n"
+                f"💥 *Frases para thumbnail:*\n{frases_texto}\n\n"
+                f"🎙️ *Transcripción:*\n{transcripcion_corta}"
+
+            )
+            await update.message.reply_text(mensaje, parse_mode="Markdown")
+        else:
+            await update.message.reply_text(f"Estatus: {resultado.get('estatus')}\nDetalle: {resultado}")
+
         user_state.pop(user_id)
 
     user_state[user_id] = estado
