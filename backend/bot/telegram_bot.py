@@ -46,27 +46,33 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
 
         await update.message.reply_text("⏳ Procesando video, esto puede tardar 1-2 minutos...")
-        response = requests.post(API_URL, json=payload)
+        response = requests.post(API_URL, json=payload, timeout=300)
         resultado = response.json()
 
         if resultado.get("estatus") == "completado" and resultado.get("propuesta_contenido"):
-            propuesta = json.loads(resultado["propuesta_contenido"])
-            frases = propuesta.get("frases_potentes", [])
-            frases_texto = "\n".join(f"• {f}" for f in frases)
-            transcripcion = resultado.get("transcripcion", "N/A")
-            transcripcion_corta = transcripcion[:500] + "..." if len(transcripcion) > 500 else transcripcion
+            try:
+                propuesta = json.loads(resultado["propuesta_contenido"])
+                frases = propuesta.get("frases_potentes", [])
+                frases_texto = "\n".join(f"• {f}" for f in frases)
+                transcripcion = resultado.get("transcripcion", "N/A")
+                transcripcion_corta = transcripcion[:500] + "..." if len(transcripcion) > 500 else transcripcion
 
-            mensaje = (
-                f"✅ *Video procesado* ({estado['tipo_contenido']})\n\n"
-                f"📌 *Título:* {propuesta.get('titulo', 'N/A')}\n\n"
-                f"📝 *Descripción:*\n{propuesta.get('descripcion', 'N/A')}\n\n"
-                f"🏷️ *Hashtags:* {' '.join('#' + h for h in propuesta.get('hashtags', []))}\n\n"
-                f"🔑 *Etiquetas:* {', '.join(propuesta.get('etiquetas', []))}\n\n"
-                f"💥 *Frases para thumbnail:*\n{frases_texto}\n\n"
-                f"🎙️ *Transcripción:*\n{transcripcion_corta}"
+                mensaje = (
+                    f"✅ *Video procesado* ({estado['tipo_contenido']})\n\n"
+                    f"📌 *Título:* {propuesta.get('titulo', 'N/A')}\n\n"
+                    f"📝 *Descripción:*\n{propuesta.get('descripcion', 'N/A')}\n\n"
+                    f"🏷️ *Hashtags:* {' '.join('#' + h for h in propuesta.get('hashtags', []))}\n\n"
+                    f"🔑 *Etiquetas:* {', '.join(propuesta.get('etiquetas', []))}\n\n"
+                    f"💥 *Frases para thumbnail:*\n{frases_texto}\n\n"
+                    f"🎙️ *Transcripción:*\n{transcripcion_corta}"
 
-            )
-            await update.message.reply_text(mensaje, parse_mode="Markdown")
+                )
+                await update.message.reply_text(mensaje)
+            except Exception as e:
+                print(f"❌ Error al formatear/enviar mensaje: {e}")
+                await update.message.reply_text(
+                    f"✅ Procesado, pero hubo un error al formatear el mensaje: {e}"
+                )
         else:
             await update.message.reply_text(f"Estatus: {resultado.get('estatus')}\nDetalle: {resultado}")
 

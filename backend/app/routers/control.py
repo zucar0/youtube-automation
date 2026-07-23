@@ -33,6 +33,7 @@ async def registrar_url(request: ControlRequest):
         "url": request.url,
         "equipo": request.equipo,
         "texto_referencia": request.texto_referencia,
+        "tipo_contenido": request.tipo_contenido,   # <-- nuevo
         "fecha_ingreso": datetime.now(timezone.utc).isoformat(),
         "usuario": request.usuario,
         "estatus": "pendiente",

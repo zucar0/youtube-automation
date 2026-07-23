@@ -24,19 +24,19 @@ def generar_propuesta_contenido(transcript_texto: str, equipo: str, contexto: st
     if tipo_contenido == "largo":
         instrucciones_formato = (
             "Este contenido es para un VIDEO LARGO/NORMAL de YouTube (no un short). "
-            "El título debe ser descriptivo pero atractivo, puede tener hasta 1500 caracteres y al menos 250, "
+            "El título debe ser descriptivo pero atractivo, puede tener hasta 150 caracteres, "
             "y puede incluir palabras clave de búsqueda de forma natural. "
-            "La descripción debe ser más completa (4-6 líneas), incluyendo contexto "
+            "La descripción debe ser más completa (10-20 líneas y al menos 550 caracteres), incluyendo contexto "
             "y una invitación a suscribirse. Las frases para thumbnail deben transmitir el tema central del video completo, "
             "no un solo momento puntual."
         )
     else:
         instrucciones_formato = (
             "Este contenido es para un SHORT de YouTube. "
-            "El título debe ser corto (máximo 60 caracteres), directo y con gancho inmediato — "
+            "El título debe ser corto (máximo 150 caracteres y mínimo 100 caracteres), directo y con gancho inmediato — "
             "la persona debe entender el video en menos de 2 segundos de lectura. "
-            "La descripción debe ser breve (2-3 líneas) con llamado a la acción claro. "
-            "Las frases para thumbnail deben capturar el momento más impactante o sorprendente del clip, "
+            "La descripción debe ser más completa (10-20 líneas y al menos 550 caracteres), incluyendo contexto "
+            "y una invitación a suscribirse. Las frases para thumbnail deben capturar el momento más impactante o sorprendente del clip, "
             "pensadas para generar curiosidad inmediata."
         )
 
@@ -54,9 +54,9 @@ def generar_propuesta_contenido(transcript_texto: str, equipo: str, contexto: st
                     f"{instrucciones_formato}\n\n"
                     "Responde SOLO en formato JSON con las claves:\n"
                     "titulo, descripcion, "
-                    "hashtags (lista de 5-8, sin el símbolo #), "
-                    "etiquetas (lista de 8-12 tags de búsqueda), "
-                    "frases_potentes (lista de 5 a 10 frases cortas y contundentes para thumbnail)."
+                    "hashtags (lista de 15-20, sin el símbolo #), "
+                    "etiquetas (lista de 12-20 tags de búsqueda con el límite de 500 caracteres), "
+                    "frases_potentes (lista de 5 a 10 frases y contundentes para thumbnail (utilizar las frases que vienen literales dela transcripción))."
                 )
             },
             {
