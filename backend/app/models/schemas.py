@@ -26,3 +26,11 @@ class VideoJob(BaseModel):
     transcript: Optional[str] = None
     metadata: Optional[VideoMetadata] = None
     drive_url: Optional[str] = None
+
+class PendingDownload(BaseModel):
+    url: str
+    fuente: str
+    equipo: Optional[str] = None
+    contexto: Optional[str] = None
+    chat_id: str
+    metadata_liviana: dict
