@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import download, transcription, metadata, approval, rss, control
+from app.routers import download, transcription, metadata, approval, rss, control, rapido
 
 app = FastAPI(
     title=settings.app_name,
@@ -22,6 +22,7 @@ app.include_router(metadata.router,       prefix="/api/metadata",       tags=["M
 app.include_router(approval.router,       prefix="/api/approval",       tags=["Approval"])
 app.include_router(rss.router, prefix="/api/rss", tags=["RSS"])
 app.include_router(control.router, prefix="/api/control", tags=["Control"])
+app.include_router(rapido.router, prefix="/api/rapido", tags=["Rapido"])
 
 @app.get("/")
 def root():

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     databricks_http_path: str = ""
     youtube_api_key: str = ""
     telegram_bot_token: str = ""
+    telegram_bot_token_dev: str = ""
     class Config:
         env_file = ".env"
 

@@ -6,7 +6,6 @@ from app.config import settings
 
 API_URL = "http://localhost:8000/api/control/"
 
-# Guardamos el estado de la conversación por usuario (simple, en memoria)
 user_state = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -65,7 +64,6 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"🔑 *Etiquetas:* {', '.join(propuesta.get('etiquetas', []))}\n\n"
                     f"💥 *Frases para thumbnail:*\n{frases_texto}\n\n"
                     f"🎙️ *Transcripción:*\n{transcripcion_corta}"
-
                 )
                 await update.message.reply_text(mensaje)
             except Exception as e:

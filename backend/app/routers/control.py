@@ -9,6 +9,7 @@ from app.services.transcriber import transcribe_video
 from app.services.classifier import clasificar_tema, generar_propuesta_contenido
 from app.services.youtube_metadata import obtener_metadata_youtube
 from app.services.databricks_uploader import guardar_en_volume
+from app.services.news_search import buscar_notas_similares
 
 router = APIRouter()
 
@@ -55,11 +56,15 @@ async def registrar_url(request: ControlRequest):
         guardar_en_volume(registro, registro_id, tipo="control")
         resultado_transcripcion = transcribe_video(file_path)
         tema_data = clasificar_tema(resultado_transcripcion["text"])
+        notas_similares = await buscar_notas_similares(request.equipo, request.texto_referencia)
+
+
         propuesta = generar_propuesta_contenido(
             resultado_transcripcion["text"],
             request.equipo,
             request.texto_referencia,
-            request.tipo_contenido
+            request.tipo_contenido,
+            notas_similares=notas_similares,
         )
         payload_transcripcion = {
             "video_id": video_id,

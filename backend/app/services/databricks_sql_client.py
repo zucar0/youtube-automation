@@ -2,7 +2,7 @@ from databricks import sql
 import uuid
 import json
 from datetime import datetime, timezone
-from app.utils.config import settings
+from app.config import settings
 from app.models.schemas import PendingDownload
 
 
@@ -21,7 +21,7 @@ async def guardar_en_cola_pendiente(data: PendingDownload) -> str:
             cursor.execute("""
                 INSERT INTO workspace.youtube_automation.bronze_pending_download
                 (id, url, fuente, equipo, contexto, chat_id, metadata_liviana, estado, fecha_creacion)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, 'pendiente', %s)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente', ?)
             """, (
                 registro_id, data.url, data.fuente, data.equipo, data.contexto,
                 data.chat_id, json.dumps(data.metadata_liviana),
