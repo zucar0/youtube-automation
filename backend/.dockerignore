@@ -1,0 +1,7 @@
+venv312/
+__pycache__/
+*.pyc
+.env
+.git/
+.vscode/
+bot/__pycache__/
