@@ -3,8 +3,9 @@ from functools import partial
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.services.databricks_sql_client import guardar_en_cola_pendiente
+from app.services.databricks_sql_client import guardar_en_cola_pendiente, actualizar_propuesta_generada
 from app.services.metadata_router import obtener_metadata_liviana, detectar_fuente
+
 from app.services.news_search import buscar_notas_similares
 from app.services.classifier import generar_propuesta_rapida
 from app.models.schemas import PendingDownload
@@ -54,6 +55,9 @@ async def proponer_contenido(request: RapidoRequest):
         chat_id=request.chat_id,
         metadata_liviana=metadata,
     ))
+
+    propuesta = json.loads(propuesta_raw)
+    await actualizar_propuesta_generada(registro_id, propuesta)
 
     return {
         "registro_id": registro_id,

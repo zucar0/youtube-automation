@@ -6,7 +6,7 @@ from telegram.ext import ContextTypes
 from app.services.metadata_router import obtener_metadata_liviana, detectar_fuente
 from app.services.news_search import buscar_notas_similares
 from app.services.classifier import generar_propuesta_rapida
-from app.services.databricks_sql_client import guardar_en_cola_pendiente
+from app.services.databricks_sql_client import guardar_en_cola_pendiente, actualizar_propuesta_generada
 from app.models.schemas import PendingDownload
 
 logger = logging.getLogger(__name__)
@@ -61,9 +61,15 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
             propuesta = json.loads(propuesta_raw)
 
             registro_id = await guardar_en_cola_pendiente(PendingDownload(
-                url=url, fuente=fuente, equipo=equipo, contexto=contexto,
-                chat_id=str(user_id), metadata_liviana=metadata,
+                url=url,
+                fuente=fuente,
+                equipo=equipo,
+                contexto=contexto,
+                chat_id=str(user_id),
+                metadata_liviana=metadata,
             ))
+
+            await actualizar_propuesta_generada(registro_id, propuesta)
 
             frases_texto = "\n".join(f"• {f}" for f in propuesta.get("frases_potentes", []))
             mensaje = (

@@ -28,3 +28,15 @@ async def guardar_en_cola_pendiente(data: PendingDownload) -> str:
                 datetime.now(timezone.utc)
             ))
     return registro_id
+
+async def actualizar_propuesta_generada(registro_id: str, propuesta: dict):
+    with _get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE workspace.youtube_automation.bronze_pending_download
+                SET propuesta_generada = ?
+                WHERE id = ?
+            """, (
+                json.dumps(propuesta),
+                registro_id,
+            ))
