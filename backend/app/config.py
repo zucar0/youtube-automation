@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     youtube_api_key: str = ""
     telegram_bot_token: str = ""
     telegram_bot_token_dev: str = ""
+    gemini_api_key: str = ""
     class Config:
         env_file = ".env"
 

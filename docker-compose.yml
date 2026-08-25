@@ -1,0 +1,30 @@
+# docker-compose.yml — colócalo en la raíz del repo (junto a backend/)
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile          # imagen completa: incluye ffmpeg (transcripción/descarga)
+    container_name: yt-automation-api
+    env_file:
+      - ./backend/.env
+    environment:
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped
+    # Usa el CMD que ya tiene el Dockerfile, no hace falta sobreescribirlo
+
+  bot:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.light    # rama ligera: sin ffmpeg, sin descarga/transcripción
+    container_name: yt-automation-bot
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped
+    depends_on:
+      - api

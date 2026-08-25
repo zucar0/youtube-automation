@@ -3,6 +3,17 @@ from openai import OpenAI
 
 client = OpenAI(api_key=settings.openai_api_key)
 
+
+def _formatear_tiempo(segundos: float) -> str:
+    """Convierte segundos a formato MM:SS, o HH:MM:SS si el video dura más de 1 hora."""
+    segundos = int(segundos)
+    horas = segundos // 3600
+    minutos = (segundos % 3600) // 60
+    segs = segundos % 60
+    if horas > 0:
+        return f"{horas:02d}:{minutos:02d}:{segs:02d}"
+    return f"{minutos:02d}:{segs:02d}"
+
 def clasificar_tema(transcript_texto: str) -> dict:
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -20,7 +31,7 @@ def clasificar_tema(transcript_texto: str) -> dict:
     )
     return response.choices[0].message.content
 
-def generar_propuesta_contenido(transcript_texto: str, equipo: str, contexto: str, tipo_contenido: str, notas_similares: list | None = None) -> dict:
+def generar_propuesta_contenido(transcript_texto: str, equipo: str, contexto: str, tipo_contenido: str, notas_similares: list | None = None, segments: list | None = None) -> dict:
     notas_similares = notas_similares or []
 
     if tipo_contenido == "largo":
@@ -47,6 +58,45 @@ def generar_propuesta_contenido(transcript_texto: str, equipo: str, contexto: st
         for n in notas_similares
     ) or "No se encontraron noticias relacionadas recientes."
 
+    tiene_segments = bool(segments)
+    usar_capitulos = tipo_contenido == "largo" and tiene_segments
+
+    instrucciones_capitulos = ""
+    instrucciones_momentos = ""
+    segments_texto = ""
+    claves_extra_json = ""
+
+    if tiene_segments:
+        segments_texto = "\n".join(
+            f"[{_formatear_tiempo(seg['start'])}] {seg['text'].strip()}"
+            for seg in segments
+        )
+        instrucciones_momentos = (
+            "\n\nADEMÁS, identifica entre 2 y 3 momentos pico/más impactantes del video usando la transcripción "
+            "segmentada con timestamps que se te proporciona más abajo — ideales para usarse como frame de "
+            "thumbnail. Regresa esto en la clave 'momentos_clave': lista de objetos con 'tiempo' (mismo formato "
+            "que los timestamps recibidos), 'frase' (frase corta y contundente para overlay de thumbnail, puede "
+            "repetir alguna de las frases_potentes si aplica), e 'instrucciones_thumbnail' (1-2 oraciones muy "
+            "específicas, en español, describiendo qué está pasando exactamente en ese momento real del video — "
+            "quién anota/qué jugada ocurre, de qué equipo, con qué emoción — pensadas para guiar la edición de "
+            "una fotografía REAL de ese instante sin inventar un escenario distinto)."
+        )
+        claves_extra_json += (
+            "momentos_clave (lista de 2 a 3 objetos con las claves 'tiempo', 'frase' e 'instrucciones_thumbnail'), "
+        )
+    if usar_capitulos:
+        instrucciones_capitulos = (
+            "\n\nADEMÁS, genera una lista de capítulos para YouTube usando la transcripción segmentada con "
+            "timestamps que se te proporciona más abajo (bloque 'Transcripción segmentada con timestamps'). "
+            "Reglas obligatorias: el primer capítulo debe iniciar en 00:00, debe haber mínimo 3 capítulos, y "
+            "cada capítulo debe durar al menos 10 segundos. Usa el mismo formato de tiempo que ves en los "
+            "timestamps (MM:SS o HH:MM:SS) y un título corto (máximo 8 palabras) que resuma el tema de esa sección."
+        )
+        claves_extra_json += (
+            "capitulos (lista de objetos con las claves 'tiempo' (string, mismo formato que los timestamps "
+            "recibidos) y 'titulo' (string corto)), "
+        )
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -71,12 +121,16 @@ def generar_propuesta_contenido(transcript_texto: str, equipo: str, contexto: st
                     "(puede ser un jugador, técnico o comentarista del equipo rival). No asumas que la transcripción "
                     f"habla en nombre de {equipo} solo porque el video se publica en este canal — identifica correctamente "
                     "de quién es la declaración/jugada y mantén la coherencia del relato en función de eso.\n\n"
-                    f"{instrucciones_formato}\n\n"
+                    f"{instrucciones_formato}"
+                    f"{instrucciones_momentos}"
+                    f"{instrucciones_capitulos}\n\n"
                     "Responde SOLO en formato JSON con las claves:\n"
                     "titulo, descripcion, "
                     "hashtags (lista de 15-20, sin el símbolo #), "
                     "etiquetas (lista de 12-20 tags de búsqueda con el límite de 500 caracteres), "
-                    "frases_potentes (lista de 5 a 10 frases y contundentes para thumbnail (utilizar las frases que vienen literales dela transcripción))."
+                    "frases_potentes (lista de 5 a 10 frases y contundentes para thumbnail (utilizar las frases que vienen literales dela transcripción)), "
+                    f"{claves_extra_json}"
+                    "(si no se te pide generar capítulos o momentos clave, simplemente omite esas claves)."
                 )
             },
             {
@@ -85,7 +139,8 @@ def generar_propuesta_contenido(transcript_texto: str, equipo: str, contexto: st
                     f"Equipo del canal: {equipo}\n\n"
                     f"Contexto proporcionado por el usuario: {contexto}\n\n"
                     f"Transcripción del video: {transcript_texto}\n\n"
-                    f"Noticias relacionadas encontradas:\n{noticias_texto}"
+                    + (f"Transcripción segmentada con timestamps:\n{segments_texto}\n\n" if tiene_segments else "")
+                    + f"Noticias relacionadas encontradas:\n{noticias_texto}"
                 )
             }
         ],
