@@ -20,6 +20,8 @@ filelock==3.29.7
 fsspec==2026.6.0
 future==1.0.0
 google-auth==2.55.2
+google-auth-oauthlib==1.4.1
+google-api-python-client==2.200.0
 h11==0.16.0
 httpcore==1.0.9
 httptools==0.8.0
@@ -76,3 +78,4 @@ watchfiles==1.2.0
 websockets==16.1
 yt-dlp==2026.7.4
 google-genai
+# force rebuild 2026-09-30
