@@ -64,3 +64,18 @@ app.include_router(telegram_webhook.router, prefix="/api/telegram",    tags=["Te
 @app.get("/")
 def root():
     return {"status": "ok", "app": settings.app_name}
+
+
+@app.get("/api/debug/google-auth")
+def debug_google_auth():
+    """
+    Endpoint TEMPORAL para confirmar que get_google_credentials() funciona
+    en Railway usando GOOGLE_OAUTH_TOKEN_JSON. Borrar una vez confirmado.
+    """
+    from app.services.google_auth import get_google_credentials, GoogleAuthNotConfigured
+
+    try:
+        creds = get_google_credentials()
+        return {"valid": creds.valid, "expired": creds.expired}
+    except GoogleAuthNotConfigured as e:
+        return {"error": str(e)}
